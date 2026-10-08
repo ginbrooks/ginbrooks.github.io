@@ -66,6 +66,27 @@
     return {entries, quantity, gross, fees, net: gross - fees, peak, closed: quantity === 0};
   }
 
+  function netCurve(samples) {
+    const events = samples.flatMap(sample => ledger(sample).entries.map(fill => ({
+      time: fill.time, realized: fill.realized, fee: fill.fee,
+    })));
+    events.sort((a, b) => a.time - b.time);
+    const points = [];
+    let gross = 0, fees = 0, count = 0;
+    for (const event of events) {
+      if (!Number.isSafeInteger(event.time)) throw Error('Invalid synthetic event time');
+      gross += event.realized;
+      fees += event.fee;
+      count++;
+      if (![gross, fees, gross - fees].every(Number.isSafeInteger)) throw Error('Curve exceeds safe integer cents');
+      const point = {time: event.time, gross, fees, net: gross - fees, count};
+      // Simultaneous fills have one end-of-timestamp value, without arbitrary ordering.
+      if (points.length && points[points.length - 1].time === event.time) points[points.length - 1] = point;
+      else points.push(point);
+    }
+    return {points, gross, fees, net: gross - fees, count};
+  }
+
   function candles(example) {
     const points = [[0, example.anchor * .94], [160, example.anchor * .965],
       [300, example.anchor * .985], ...example.fills.map(fill => [fill.bar, fill.price]),
@@ -125,7 +146,10 @@
       nextAction: typeof item.nextAction === 'string' ? item.nextAction.slice(0, 2000) : '',
       complete: item.complete === true};
   }
-  const api = {examples, ledger, candles, aggregate, movingAverage, issueTags, exitReasons, blankReview, sanitizeReview};
+  function sanitizeFillNotes(value, count) {
+    return Array.from({length: count}, (_, index) => typeof value?.[index] === 'string' ? value[index].slice(0, 2000) : '');
+  }
+  const api = {examples, ledger, netCurve, candles, aggregate, movingAverage, issueTags, exitReasons, blankReview, sanitizeReview, sanitizeFillNotes};
   if (typeof module === 'object' && module.exports) module.exports = api;
   else global.JournalDemoModel = api;
 })(typeof window === 'undefined' ? globalThis : window);

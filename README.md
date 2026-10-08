@@ -1,6 +1,6 @@
 # ginbrooks / works
 
-A small, static portfolio for three practical products: Book Wiki Reader, Shipping Document Workbench, and Trading Journal.
+A small, static portfolio for three practical products: Book Wiki Reader, Shipping Document Workbench, and Trading Assistant.
 
 ## Run locally
 
@@ -14,9 +14,9 @@ Open `http://127.0.0.1:4173`. No package installation, model credentials, analyt
 
 - [Book Wiki Reader](https://github.com/ginbrooks/book-wiki-reader-skill): local text import and archival, a portable reading workspace, and a Codex co-reading skill.
 - [Shipping Document Workbench](https://github.com/ginbrooks/shipping-document-workbench): review-first export-document workflows, deterministic calculations, and a public synthetic-data preflight demo.
-- Trading Journal: an independently written synthetic interactive demo of position-cycle review, chart context and structured reflection. The actual product source remains private.
+- Trading Assistant: API-driven trade data organization, cumulative realized PnL, entry/exit chart markers, and notes attached to trades. The current private review integration supports Binance USD-M with manually triggered updates; multi-platform aggregation and continuous real-time synchronization are not yet connected. The public interactive demo is independently written with synthetic data.
 
-The `demos/` directory contains self-contained public examples. Book and Shipping demos are copied from their public source repositories; Trading Journal is authored separately for this portfolio and contains no private implementation code. Examples use original/synthetic content. They do not connect to private libraries, customer records or production services. Capability details and limitations live in each project's README.
+The `demos/` directory contains self-contained public examples. Book and Shipping demos are copied from their public source repositories; Trading Assistant is authored separately for this portfolio and contains no private implementation code. Examples use original/synthetic content. They do not connect to private libraries, customer records or production services. Capability details and limitations live in each project's README.
 
 ## Publish on GitHub Pages
 

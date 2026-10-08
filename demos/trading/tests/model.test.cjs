@@ -58,3 +58,37 @@ test('notes accept only this demo schema and explicit completion', () => {
   assert.equal(model.sanitizeReview({complete: true}).complete, true);
   assert.equal(model.sanitizeReview({reflection: 'a'.repeat(3000)}).reflection.length, 2000);
 });
+
+test('total curve uses chronological fills, includes opening fees, and matches every ledger', () => {
+  const curve = model.netCurve(model.examples);
+  assert.deepEqual([curve.gross, curve.fees, curve.net, curve.count], [1400, 88, 1312, 10]);
+  assert.equal(curve.points[0].net, -8);
+  assert.equal(curve.points[0].count, 1);
+  curve.points.forEach((point, index) => {
+    assert.equal(point.net, point.gross - point.fees);
+    if (index) assert.ok(point.time > curve.points[index - 1].time);
+  });
+  assert.deepEqual(model.netCurve([...model.examples].reverse()), curve);
+  assert.equal(curve.net, model.examples.reduce((sum, item) => sum + model.ledger(item).net, 0));
+});
+test('simultaneous fills are merged into one cumulative point', () => {
+  const samples = [5, 7].map(fee => ({direction: 'long', fills: [{bar: 0, change: 1, price: 100, fee}]}));
+  const curve = model.netCurve(samples);
+  assert.equal(curve.points.length, 1);
+  assert.deepEqual([curve.points[0].net, curve.points[0].count], [-12, 2]);
+  assert.deepEqual(model.netCurve(samples.reverse()), curve);
+});
+test('empty curve stays empty and non-realized holdings only contribute actual fees', () => {
+  assert.deepEqual(model.netCurve([]), {points: [], gross: 0, fees: 0, net: 0, count: 0});
+  assert.equal(model.netCurve([{direction: 'long', fills: [{bar: 0, change: 1, price: 100, fee: 5}]}]).net, -5);
+});
+test('curve rejects invalid timestamps and unsafe accumulated cents', () => {
+  assert.throws(() => model.netCurve([{direction: 'long', fills: [{change: 1, price: 100, fee: 1}]}]), /time/);
+  const sample = {direction: 'long', fills: [{bar: 0, change: 1, price: 100, fee: Number.MAX_SAFE_INTEGER}]};
+  assert.throws(() => model.netCurve([sample, sample]), /safe integer/);
+});
+test('fill notes are isolated by index and legacy empty values remain usable', () => {
+  assert.deepEqual(model.sanitizeFillNotes(null, 2), ['', '']);
+  assert.deepEqual(model.sanitizeFillNotes(['first', 99, 'third', 'extra'], 3), ['first', '', 'third']);
+  assert.equal(model.sanitizeFillNotes(['x'.repeat(3000)], 1)[0].length, 2000);
+});

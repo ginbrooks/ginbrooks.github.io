@@ -14,13 +14,14 @@
   "trading": {
     "repository": "https://github.com/ginbrooks/ginbrooks.github.io",
     "source_path": "demos/trading",
-    "content": "independently authored synthetic interactive showcase; no private product implementation or account data",
+    "content": "independently authored synthetic demo of cumulative realized PnL, entry/exit charts, and per-fill notes; no private product implementation or account data",
     "product_source": "private",
     "files_sha256": {
-      "index.html": "3f9f0e8026996a55ea2468b31148b4d463db2c21662dfbb70e3b3c29ccf54cfb",
-      "style.css": "cd7a2f6fc5c33959a7f4691404d61d923a10d012290dd1a4bfa876a49e8b222e",
-      "demo-model.js": "5435050b3a4a7887b3d350b7d5f6cc473481a93af5a11ff33094a85188d897b1",
-      "demo.js": "457cbda57b82018bfb36d713a5f97049a30c8734b51b5d16468c9e66b9127b39"
-    }
+      "index.html": "4d24135e210d5ebab214bf9f77a9dfd7a61aa88c0b6357427e4407d605868090",
+      "style.css": "f891891ac99b4b85f5db1b76c7eb8eca3f3d8151e28389b2d269eb9e9d4ff40c",
+      "demo-model.js": "477abcd2b46a4f0c9c66c433ca659d6030647a74519c437d38cdf1b1858c6270",
+      "demo.js": "4b0332af5128250f4f096e12889915cecf86cae4ebac494413ceded763be0ce2"
+    },
+    "product_name": "交易助手 / Trading Assistant"
   }
 }

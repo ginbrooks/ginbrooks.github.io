@@ -5,6 +5,7 @@
   const $ = id => document.getElementById(id);
   const STORAGE_KEY = 'trading-journal-public-demo-v1';
   const reviews = Object.fromEntries(examples.map(item => [item.id, model.blankReview()]));
+  const fillNotes = Object.fromEntries(examples.map(item => [item.id, model.sanitizeFillNotes(null, item.fills.length)]));
   let selection = examples[0], activeFill = 0, interval = '5m', storageError = '', savedIds = new Set();
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
@@ -13,6 +14,7 @@
         reviews[item.id] = model.sanitizeReview(saved.reviews[item.id]);
         savedIds.add(item.id);
       }
+      for (const item of examples) fillNotes[item.id] = model.sanitizeFillNotes(saved.fillNotes?.[item.id], item.fills.length);
     }
   } catch (_) { storageError = '未能读取本机存储；新笔记仍可导出。'; }
 
@@ -48,8 +50,9 @@
       heading.append(element('strong', '', item.instrument), element('span', 'chip' + (item.direction === 'short' ? ' short' : ''), item.direction === 'long' ? '多' : '空'));
       card.append(heading, element('h3', '', item.title));
       const meta = element('div', 'meta');
+      const noteCount = fillNotes[item.id].filter(note => note.trim()).length;
       meta.append(element('span', '', '04.14 · ' + (totals.closed ? '已平仓' : '持仓中')),
-        element('span', 'review-dot' + (reviews[item.id].complete ? ' complete' : ''), statusText(reviews[item.id])));
+        element('span', 'review-dot', noteCount ? `${noteCount} 笔有笔记` : '逐笔笔记待写'));
       card.append(meta);
       card.addEventListener('click', () => {selection = item; activeFill = 0; render();});
       holder.append(card);
@@ -80,6 +83,40 @@
     for (const [name, value] of Object.entries(attrs)) node.setAttribute(name, String(value));
     if (text !== undefined) node.textContent = text;
     return node;
+  }
+  function renderOverview() {
+    const result = model.netCurve(examples);
+    $('overall-net').textContent = money(result.net, true);
+    $('overall-net').className = result.net >= 0 ? 'positive' : 'negative';
+    $('overall-gross').textContent = money(result.gross, true);
+    $('overall-fee').textContent = money(result.fees);
+    $('overall-count').textContent = `${result.count} 条成交 · 2 个已平 / 1 个未平`;
+    const wrapper = $('overall-chart'), width = Math.max(260, wrapper.clientWidth), height = wrapper.clientHeight;
+    const first = result.points[0].time, last = result.points[result.points.length - 1].time;
+    const left = 15, right = width - 50, top = 16, bottom = height - 30;
+    const min = Math.min(0, ...result.points.map(point => point.net)), max = Math.max(0, ...result.points.map(point => point.net));
+    const pad = Math.max(25, (max - min) * .15);
+    const x = value => left + (value - first) / Math.max(1, last - first) * (right - left);
+    const y = value => bottom - (value - min + pad) / (max - min + pad * 2) * (bottom - top);
+    const svg = svgElement('svg', {viewBox: `0 0 ${width} ${height}`, role: 'img', 'aria-label': `10 条合成成交的累计已实现净额，最终 ${money(result.net)} USD；不是账户权益`});
+    for (let index = 0; index < 4; index++) {
+      const value = min + (max - min) * index / 3;
+      svg.append(svgElement('line', {x1: left, x2: right, y1: y(value), y2: y(value), stroke: '#e8ece2', 'stroke-dasharray': '3 4'}));
+      svg.append(svgElement('text', {x: right + 8, y: y(value) + 3, fill: '#85917e', 'font-size': 9}, money(value)));
+    }
+    svg.append(svgElement('line', {x1: left, x2: right, y1: y(0), y2: y(0), stroke: '#bcc8b8'}));
+    let path = `M ${left} ${y(0)}`;
+    for (const point of result.points) path += ` H ${x(point.time)} V ${y(point.net)}`;
+    svg.append(svgElement('path', {d: path, fill: 'none', stroke: '#47745f', 'stroke-width': 2, 'stroke-linejoin': 'round'}));
+    for (const point of result.points) {
+      const dot = svgElement('circle', {cx: x(point.time), cy: y(point.net), r: 3, fill: '#fcfbf7', stroke: '#47745f', 'stroke-width': 1.4});
+      dot.append(svgElement('title', {}, `${time(point.time, true)} · 累计 ${money(point.net, true)} USD · 已计 ${point.count} 条成交`));
+      svg.append(dot);
+    }
+    for (const [value, anchor] of [[first, 'start'], [(first + last) / 2, 'middle'], [last, 'end']]) {
+      svg.append(svgElement('text', {x: x(value), y: height - 8, fill: '#85917e', 'font-size': 9, 'text-anchor': anchor}, time(value)));
+    }
+    wrapper.replaceChildren(svg);
   }
   function renderChart() {
     const wrapper = $('chart');
@@ -170,14 +207,19 @@
       const cell = element('div');cell.append(element('span', '', label), element('strong', '', value));detail.append(cell);
     }
     $('declared-reason').textContent = selection.declaredReason;
+    $('fill-note-label').textContent = `第 ${activeFill + 1} 笔 · ${fill.action}的判断`;
+    $('fill-note').value = fillNotes[selection.id][activeFill];
+    updateSaveState();
   }
   function updateSaveState() {
     $('save-state').textContent = storageError || (savedIds.has(selection.id) ? '已保存到此浏览器' : '暂无本机记录');
     $('save-state').className = 'save-state' + (storageError ? ' error' : '');
+    $('fill-save-state').textContent = $('save-state').textContent;
+    $('fill-save-state').className = $('save-state').className;
   }
   function persist() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({version: 1, updatedAt: new Date().toISOString(), reviews}));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({version: 1, updatedAt: new Date().toISOString(), reviews, fillNotes}));
       storageError = '';
       savedIds.add(selection.id);
     } catch (_) { storageError = '未保存：本机存储不可用，请导出笔记。'; }
@@ -207,7 +249,7 @@
     $('review-question').textContent = selection.question;
     renderTags();updateSaveState();
   }
-  function render() {renderCycles();renderSummary();renderChart();renderFills();renderReview();}
+  function render() {renderCycles();renderOverview();renderSummary();renderChart();renderFills();renderReview();}
   for (const reason of model.exitReasons) {
     const option = element('option', '', reason);option.value = reason;$('exit-reason').append(option);
   }
@@ -215,17 +257,19 @@
     $(id).addEventListener(id === 'exit-reason' ? 'change' : 'input', event => {reviews[selection.id][property] = event.target.value;persist();});
   }
   $('review-complete').addEventListener('change', event => {reviews[selection.id].complete = event.target.checked;persist();});
+  $('fill-note').addEventListener('input', event => {fillNotes[selection.id][activeFill] = event.target.value;persist();});
   document.querySelectorAll('[data-interval]').forEach(button => button.addEventListener('click', () => {interval = button.dataset.interval;renderChart();}));
   $('export-notes').addEventListener('click', () => {
     const report = {version: 1, context: '合成交易演示中的本机笔记，不含真实交易或收益记录', exportedAt: new Date().toISOString(),
-      entries: examples.map(item => ({exampleId: item.id, instrument: item.instrument, review: {...reviews[item.id]}}))};
+      entries: examples.map(item => ({exampleId: item.id, instrument: item.instrument, review: {...reviews[item.id]},
+        fillNotes: fillNotes[item.id].map((note, index) => ({fillIndex: index, note}))}))};
     const file = new Blob([JSON.stringify(report, null, 2)], {type: 'application/json'});
     const url = URL.createObjectURL(file), anchor = element('a');
-    anchor.href = url;anchor.download = 'trading-journal-demo-notes.json';document.body.append(anchor);anchor.click();anchor.remove();
+    anchor.href = url;anchor.download = 'trading-assistant-demo-notes.json';document.body.append(anchor);anchor.click();anchor.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
     $('export-status').textContent = '演示笔记已导出；文件只包含你在此页面记录的文字与状态。';
   });
   render();
   let frame;
-  new ResizeObserver(() => {cancelAnimationFrame(frame);frame = requestAnimationFrame(renderChart);}).observe($('chart'));
+  new ResizeObserver(() => {cancelAnimationFrame(frame);frame = requestAnimationFrame(() => {renderChart();renderOverview();});}).observe($('chart'));
 })();
