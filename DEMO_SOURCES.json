@@ -1,0 +1,14 @@
+{
+  "book": {
+    "repository": "https://github.com/ginbrooks/book-wiki-reader-skill",
+    "commit": "e62c03aeaff168a1242aae45119168273f78b428",
+    "source_path": "docs/demo",
+    "content": "original/synthetic public demonstration"
+  },
+  "shipping": {
+    "repository": "https://github.com/ginbrooks/shipping-document-workbench",
+    "commit": "2658395a568cd8bfe2d9f18fdeb055bda307e72d",
+    "source_path": "docs/demo",
+    "content": "original/synthetic public demonstration"
+  }
+}
