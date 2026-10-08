@@ -10,5 +10,17 @@
     "commit": "2658395a568cd8bfe2d9f18fdeb055bda307e72d",
     "source_path": "docs/demo",
     "content": "original/synthetic public demonstration"
+  },
+  "trading": {
+    "repository": "https://github.com/ginbrooks/ginbrooks.github.io",
+    "source_path": "demos/trading",
+    "content": "independently authored synthetic interactive showcase; no private product implementation or account data",
+    "product_source": "private",
+    "files_sha256": {
+      "index.html": "3f9f0e8026996a55ea2468b31148b4d463db2c21662dfbb70e3b3c29ccf54cfb",
+      "style.css": "cd7a2f6fc5c33959a7f4691404d61d923a10d012290dd1a4bfa876a49e8b222e",
+      "demo-model.js": "5435050b3a4a7887b3d350b7d5f6cc473481a93af5a11ff33094a85188d897b1",
+      "demo.js": "457cbda57b82018bfb36d713a5f97049a30c8734b51b5d16468c9e66b9127b39"
+    }
   }
 }

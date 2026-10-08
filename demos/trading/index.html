@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>交易手记 · 合成数据演示</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+  <script src="demo-model.js" defer></script>
+  <script src="demo.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#chart-title">跳到选中交易</a>
+<div class="demo-notice"><span><i></i>合成数据演示</span><p>标的、行情、成交均为虚构，仅展示复盘流程，不代表真实收益或策略能力。</p></div>
+<div class="layout">
+  <aside class="rail" aria-label="持仓周期选择">
+    <a class="brand" href="./"><span class="brand-icon" aria-hidden="true">↗</span><span>交易手记<small>TRADING JOURNAL</small></span></a>
+    <div class="rail-heading"><span>选择一个持仓周期</span><span>03</span></div>
+    <div id="cycles" class="cycle-list"></div>
+    <div class="rail-foot"><span class="eyebrow">从过程里找原因</span><p>一次完整持仓，<br>可能包含很多次决定。</p><div>合成样例按开仓日归档。<br>全部交互在浏览器内完成。</div></div>
+  </aside>
+  <main>
+    <header class="page-header"><div><span class="eyebrow">THE DECISIONS BEHIND A TRADE</span><h1><span>把一笔交易，</span><span>重新看清楚。</span></h1><p>沿着进出场的位置，回看当时做过的决定。</p></div><button id="export-notes" class="quiet-button">导出我的演示笔记 <span aria-hidden="true">↗</span></button></header>
+    <div class="selection-heading"><div><span id="instrument" class="instrument"></span><span id="direction" class="direction"></span><span id="position-state" class="state-label"></span></div><span id="date-range"></span></div>
+    <section class="metrics" aria-label="选中周期统计"><div class="metric"><span>已实现净额 <small>USD · 合成</small></span><strong id="metric-net"></strong><p>已实现盈亏 − 已发生手续费</p></div><div class="metric"><span>已发生手续费</span><strong id="metric-fee"></strong><p>按样例逐笔累计</p></div><div class="metric"><span>成交记录</span><strong id="metric-count"></strong><p id="metric-count-caption"></p></div><div class="metric"><span>剩余仓位</span><strong id="metric-position"></strong><p id="metric-position-caption"></p></div></section>
+    <section class="chart-card" aria-label="行情与成交">
+      <div class="panel-top"><div><span class="section-number">01</span><h2 id="chart-title">把决定放回行情里</h2><span class="chart-sub">生成行情 · EMA20</span></div><div class="intervals" aria-label="图表周期"><button data-interval="5m" aria-pressed="true">5 分钟</button><button data-interval="1h" aria-pressed="false">1 小时</button></div></div>
+      <div id="chart" class="chart"></div>
+      <div class="chart-bottom"><span id="chart-caption"></span><div class="legend"><span><i class="candle-key"></i>合成 K 线</span><span><i class="ema-key"></i>EMA20</span><span>数字为成交顺序</span></div></div>
+    </section>
+    <section class="decisions-card" aria-label="成交时间线"><div class="panel-top"><div><span class="section-number">02</span><h2>进出场之间，发生了什么</h2></div><span class="subtle">点选记录，查看对应成交</span></div><div id="fill-timeline" class="fill-timeline"></div><div id="fill-detail" class="fill-detail" aria-live="polite"></div><p class="reason-line">样例记录的退出原因：<span id="declared-reason"></span></p></section>
+    <section class="notes-card" aria-labelledby="notes-title"><div class="panel-top"><div><span class="section-number">03</span><h2 id="notes-title">留下下一次用得上的判断</h2></div><span id="save-state" class="save-state" role="status" aria-live="polite"></span></div><p id="review-question" class="review-question"></p><div class="note-grid"><label class="wide">当时的依据与现在的看法<textarea id="reflection" maxlength="2000" rows="3" placeholder="例如：最初的入场依据是什么？后来的加仓是否改变了风险？"></textarea></label><label>你记录的出场原因<select id="exit-reason"><option value="">选择原因，不从盈亏推断</option></select></label><div><span class="field-label">这次想关注的问题</span><div id="issue-tags" class="issue-tags"></div></div><label class="wide">下一次，具体改哪一步？<textarea id="next-action" maxlength="2000" rows="2" placeholder="写一个能执行、也能检查的改变。"></textarea></label></div><div class="note-footer"><label class="complete-toggle"><input id="review-complete" type="checkbox"><span id="complete-label">这轮复盘已完成</span></label><span>只保存在当前浏览器，可导出带走。</span></div></section>
+    <p class="method-note">示例采用固定成交与整数分金额，已实现盈亏按移动平均持仓成本计算。未平仓部分不计浮盈亏；未模拟资金费、滑点或杠杆收益率。图表由程序生成，没有市场数据连接。 <a href="https://ginbrooks.github.io/#trading" style="text-decoration:underline;text-underline-offset:3px;white-space:nowrap">返回作品集 ↗</a></p>
+    <div id="export-status" role="status" aria-live="polite"></div>
+  </main>
+</div>
+</body>
+</html>

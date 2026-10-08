@@ -19,7 +19,8 @@ def main():
     parser.add_argument("--shipping-repo", type=Path, required=True)
     args = parser.parse_args()
     pending = []
-    manifest = {}
+    manifest_path = ROOT / "DEMO_SOURCES.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.exists() else {}
     for name, spec in SOURCES.items():
         checkout = getattr(args, name + "_repo").expanduser().resolve()
         revision = subprocess.check_output(["git", "-C", str(checkout), "rev-parse", "HEAD"], text=True).strip()
